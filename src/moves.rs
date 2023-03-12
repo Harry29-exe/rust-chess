@@ -1,47 +1,55 @@
-use crate::board::{Board, BoardPosition};
-use crate::piece::{Moves, Piece, PieceColor, PieceMoved};
-use crate::piece::Piece::{Blank, Pawn};
+use crate::board::{Board, BOARD_WIDTH, BoardField, BoardPosition};
+use crate::piece::{PieceMoved, PieceState};
+use crate::piece::PieceType::{Pawn};
 use crate::piece::PieceColor::{Black, White};
 
-struct MoveService {}
 
-impl MoveService {
-    pub fn get_moves(board: &Board, pos: &BoardPosition) -> Moves {
-        let piece = board.value_at(pos);
-        return match piece {
-            Piece::Pawn(color, moved) => MoveService::get_moves_pawn(board, color, moved, &pos),
-            _ => panic!()
-        };
-    }
 
-    #[inline]
-    fn get_moves_pawn(board: &Board, piece_color: PieceColor, moved: PieceMoved, pos: &BoardPosition) -> Moves {
-        let mut moves: Vec<BoardPosition> = Vec::new();
-        let forward_y: isize = match piece_color {
-            White => 1,
-            Black => -1,
-        };
-
-        let pos_forward = pos.delta_y(forward_y);
-        if board.value_at(&pos_forward) == Blank {
-            moves.push(pos_forward);
-            let pos_forward2 = pos.delta_y(forward_y+forward_y);
-            if moved == PieceMoved::No && board.value_at(&pos_forward2) == Blank {
-                moves.push(pos_forward2);
+pub fn get_moves(board: &Board, pos: &BoardPosition) -> Vec<BoardPosition> {
+    let piece = board.value_at(pos);
+    return match piece {
+        BoardField::Empty => panic!("Empty fields don't have any moves"),
+        BoardField::Piece(state) => {
+            match state.piece_type {
+                Pawn => get_moves_pawn(board, &state, pos),
+                _ => panic!("not implemented")
             }
         }
+    };
+}
 
+#[inline]
+fn get_moves_pawn(board: &Board, piece_state: &PieceState, piece_pos: &BoardPosition) -> Vec<BoardPosition> {
+    let mut moves: Vec<BoardPosition> = Vec::new();
+    let opposite_color = piece_state.color.opposite();
+    let forward_y: isize = match piece_state.color {
+        White => Board::WHITE_FORWARD,
+        Black => Board::BLACK_FORWARD,
+    };
 
-        if pos.x > 0 {
-            let left = pos.delta_x(-1);
-            let leftPiece = board.value_at(&left);
-            match leftPiece {
-                Pawn(left_color, left_moved) => {
-                    if piece_color.opposite_to(&left_color) { }
-                }
-            }
+    let pos_forward = piece_pos.delta_y(forward_y);
+    if board.empty(&pos_forward) {
+        moves.push(pos_forward);
+        let pos_forward2 = piece_pos.delta_y(forward_y+forward_y);
+        if piece_state.moved == PieceMoved::No && board.empty(&pos_forward2) {
+            moves.push(pos_forward2);
         }
-
-        moves
     }
+
+
+    if piece_pos.x > 0 {
+        let left = piece_pos.delta(-1, forward_y);
+        if board.empty_or_color(&left, &opposite_color) {
+            moves.push(left)
+        }
+    }
+
+    if piece_pos.x < BOARD_WIDTH - 1 {
+        let right = piece_pos.delta(1, forward_y);
+        if board.empty_or_color(&right, &opposite_color) {
+            moves.push(right)
+        }
+    }
+
+    moves
 }

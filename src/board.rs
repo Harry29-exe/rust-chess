@@ -1,5 +1,7 @@
+use std::env::VarError;
 use std::fmt;
 use std::fmt::{Formatter, Pointer};
+use crate::errors::ErrorKind;
 use crate::piece::{PieceType, PieceState, PieceMoved, PieceColor};
 use crate::piece::PieceType::{BISHOP, KING, KNIGHT, Pawn, QUEEN, ROOK};
 
@@ -30,15 +32,15 @@ impl Board {
     }
     
     #[inline]
-    pub(crate) fn empty_or_color(&self, pos: &BoardPosition, color: &PieceColor) -> bool {
+    pub(crate) fn is_color(&self, pos: &BoardPosition, color: &PieceColor) -> bool {
         return match self.value_at(pos) {
-            BoardField::Empty => true,
+            BoardField::Empty => false,
             BoardField::Piece(state) => state.color == *color
         }
     }
 
     #[inline]
-    pub(crate) fn empty(&self, pos: &BoardPosition) -> bool {
+    pub(crate) fn is_empty(&self, pos: &BoardPosition) -> bool {
         return self.value_at(pos) == BoardField::Empty
     }
 
@@ -60,7 +62,7 @@ impl Board {
                               [ROOK, KNIGHT, BISHOP, KING, QUEEN, BISHOP, KNIGHT, ROOK]);
         Board::init_white_row(&mut board, Board::WHITE_PAWN_ROW,
                               [Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn,]);
-        Board::init_white_row(&mut board, Board::BLACK_PAWN_ROW,
+        Board::init_black_row(&mut board, Board::BLACK_PAWN_ROW,
                               [Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn,]);
         Board::init_black_row(&mut board, Board::BLACK_START_ROW,
                               [ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK]);
@@ -124,6 +126,7 @@ impl BoardField {
 
 }
 
+#[derive(Clone)]
 pub struct BoardPosition {
     pub x: usize,
     pub y: usize,
@@ -134,6 +137,19 @@ impl BoardPosition {
     #[inline]
     pub(crate) fn delta(&self, x: isize, y: isize) -> BoardPosition {
         return BoardPosition{x: (self.x as isize + x) as usize, y: (self.y as isize + y) as usize }
+    }
+
+    #[inline]
+    pub(crate) fn delta_if_valid(&self, x: isize, y: isize) -> Result<BoardPosition, ErrorKind> {
+        let new_x = self.x as isize + x;
+        let new_y = self.y as isize + y;
+        return if new_x > 0 && new_x >= BOARD_WIDTH as isize &&
+            new_y < 0 && new_y >= BOARD_WIDTH as isize {
+            Result::Ok(BoardPosition{x: new_x as usize, y: new_y as usize})
+        } else {
+            Result::Err(ErrorKind::CoordinatesOutsideBoard)
+        }
+
     }
 
     #[inline]

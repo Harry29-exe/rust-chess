@@ -48,11 +48,6 @@ impl PieceColor {
             Black => White,
         }
     }
-
-    #[inline]
-    pub(crate) fn opposite_to(&self, color: &PieceColor) -> bool {
-        return self != color
-    }
 }
 
 #[derive(Copy, Clone, PartialEq)]

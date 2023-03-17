@@ -11,12 +11,20 @@ pub fn get_moves(board: &Board, pos: &BoardPosition) -> Vec<BoardPosition> {
     };
 }
 
+struct PossibleMovesService<'s> {
+    vec: Vec<BoardPosition>,
+    board: &'s Board,
+    piece_pos: &'s BoardPosition,
+    piece_state: &'s PieceState
+}
+
 #[inline]
 fn get_piece_moves(board: &Board, pos: &BoardPosition, state: &PieceState) -> Vec<BoardPosition> {
     match state.piece_type {
         PieceType::Pawn => get_moves_pawn(board, &state, pos),
         PieceType::KNIGHT => get_moves_knight(board, &state, pos),
         PieceType::BISHOP => get_moves_bishop(board, &state, pos),
+        PieceType::QUEEN => get_moves_queen(board, &state, pos),
         _ => panic!("not implemented")
     }
 }
@@ -75,6 +83,12 @@ fn get_moves_bishop(board: &Board, piece_state: &PieceState, piece_pos: &BoardPo
 }
 
 #[inline]
+fn get_moves_queen(board: &Board, piece_state: &PieceState, piece_pos: &BoardPosition) -> Vec<BoardPosition> {
+    let mut moves = Vec::new();
+
+}
+
+#[inline]
 fn get_moves_vertical(board: &Board, piece_color: &PieceColor, piece_pos: &BoardPosition, moves: &mut Vec<BoardPosition>) {
     get_moves_loop(board, piece_color, piece_pos, 0, 1, moves);
     get_moves_loop(board, piece_color, piece_pos, 0, -1, moves);
@@ -114,10 +128,13 @@ fn get_moves_loop(board: &Board,
         let new_pos = new_pos_result.unwrap();
         if board.is_empty(&new_pos) {
             moves.push(new_pos.clone());
-            previous_pos = new_pos
-        } else if board.is_color(&new_pos, &opposite_color) {
-            moves.push(new_pos);
-            break;
+            previous_pos = new_pos;
+            continue;
         }
+
+        if board.is_color(&new_pos, &opposite_color) {
+            moves.push(new_pos);
+        }
+        break;
     }
 }

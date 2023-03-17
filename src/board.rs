@@ -59,13 +59,13 @@ impl Board {
     pub(crate) fn new() -> Board {
         let mut board = [BoardField::Empty; BOARD_SIZE];
         Board::init_white_row(&mut board, Board::WHITE_START_ROW,
-                              [ROOK, KNIGHT, BISHOP, KING, QUEEN, BISHOP, KNIGHT, ROOK]);
+                              [KNIGHT, ROOK, BISHOP, KING, QUEEN, BISHOP, ROOK, KNIGHT]);
         Board::init_white_row(&mut board, Board::WHITE_PAWN_ROW,
                               [Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn,]);
         Board::init_black_row(&mut board, Board::BLACK_PAWN_ROW,
                               [Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn,]);
         Board::init_black_row(&mut board, Board::BLACK_START_ROW,
-                              [ROOK, KNIGHT, BISHOP, QUEEN, KING, BISHOP, KNIGHT, ROOK]);
+                              [KNIGHT, ROOK, BISHOP, QUEEN, KING, BISHOP, ROOK, KNIGHT]);
 
         return Board{ board }
     }
@@ -85,6 +85,26 @@ impl Board {
     }
 }
 
+impl fmt::Display for Board {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        let mut is_black = true;
+        for i in (0..BOARD_SIZE).rev() {
+            if is_black {
+                f.pad("\x1B[48;2;80;80;80m").expect("can not print to console?");
+            } else {
+                f.pad("\x1B[48;2;200;200;200m").expect("can not print to console?");
+            }
+            self.board[i].fmt(f).expect("can not print to console?");
+            if i % BOARD_WIDTH == 0 {
+                f.pad("\x1B[0m\n").expect("can not print to console?");
+                is_black = !is_black;
+            }
+            is_black = !is_black;
+        }
+        f.pad("\x1B[0m")
+    }
+}
+
 #[derive(Copy, Clone, PartialEq)]
 pub enum BoardField {
     Piece(PieceState),
@@ -94,7 +114,7 @@ pub enum BoardField {
 impl fmt::Display for BoardField {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            BoardField::Piece(state) => state.piece_type.fmt(f),
+            BoardField::Piece(state) => state.fmt(f),
             BoardField::Empty => f.pad(" ")
         }
     }
@@ -143,8 +163,8 @@ impl BoardPosition {
     pub(crate) fn delta_if_valid(&self, x: isize, y: isize) -> Result<BoardPosition, ErrorKind> {
         let new_x = self.x as isize + x;
         let new_y = self.y as isize + y;
-        return if new_x > 0 && new_x >= BOARD_WIDTH as isize &&
-            new_y < 0 && new_y >= BOARD_WIDTH as isize {
+        return if new_x >= 0 && new_x < BOARD_WIDTH as isize &&
+            new_y >= 0 && new_y < BOARD_WIDTH as isize {
             Result::Ok(BoardPosition{x: new_x as usize, y: new_y as usize})
         } else {
             Result::Err(ErrorKind::CoordinatesOutsideBoard)

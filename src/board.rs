@@ -1,5 +1,5 @@
 use std::env::VarError;
-use std::fmt;
+use std::{array, fmt};
 use std::fmt::{Formatter, Pointer};
 use crate::errors::ErrorKind;
 use crate::piece::{PieceType, PieceState, PieceMoved, PieceColor};
@@ -22,13 +22,13 @@ impl Board {
     pub const BLACK_FORWARD: isize = -1;
 
     #[inline]
-    pub(crate) fn value(&self, x: usize, y: usize) -> BoardField {
-        return self.board[y*BOARD_WIDTH + x]
+    pub(crate) fn value(&self, x: usize, y: usize) -> &BoardField {
+        return &self.board[y*BOARD_WIDTH + x]
     }
 
     #[inline]
-    pub(crate) fn value_at(&self, pos: &BoardPosition) -> BoardField {
-        return self.board[pos.y*BOARD_WIDTH + pos.x]
+    pub(crate) fn value_at(&self, pos: &BoardPosition) -> &BoardField {
+        return &self.board[pos.y*BOARD_WIDTH + pos.x]
     }
     
     #[inline]
@@ -41,18 +41,13 @@ impl Board {
 
     #[inline]
     pub(crate) fn is_empty(&self, pos: &BoardPosition) -> bool {
-        return self.value_at(pos) == BoardField::Empty
+        return self.value_at(pos) == &BoardField::Empty
     }
 
     pub(crate) fn move_piece(&mut self, from: &BoardPosition, to: &BoardPosition) {
-        self.set_value(to, self.value_at(from));
-        self.set_value(from, BoardField::Empty);
+        self.board[to.as_1d_array_index()] = BoardField::Empty;
+        self.board.swap(from.as_1d_array_index(), to.as_1d_array_index());
     }
-
-    fn set_value(&mut self, pos: &BoardPosition, val: BoardField) {
-        self.board[pos.y*BOARD_WIDTH + pos.x] = val
-    }
-    
 }
 
 impl Board {
@@ -120,6 +115,12 @@ impl fmt::Display for BoardField {
     }
 }
 
+impl Default for BoardField {
+    fn default() -> Self {
+        return BoardField::Empty
+    }
+}
+
 impl BoardField {
 
     #[inline]
@@ -180,6 +181,11 @@ impl BoardPosition {
     #[inline]
     pub(crate) fn delta_y(&self, y: isize) -> BoardPosition {
         return BoardPosition{x: self.x, y: (self.y as isize + y) as usize }
+    }
+
+    #[inline]
+    fn as_1d_array_index(&self) -> usize {
+        return self.y * BOARD_WIDTH + self.x
     }
 
 }

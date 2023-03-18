@@ -9,19 +9,6 @@ pub struct PieceState {
     pub moved: PieceMoved
 }
 
-// impl Display for PieceState {
-//     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         match self.piece_type {
-//             PieceType::ROOK => f.pad("r"),
-//             PieceType::KNIGHT => f.pad("k"),
-//             PieceType::BISHOP => f.pad("b"),
-//             PieceType::QUEEN => f.pad("q"),
-//             PieceType::KING => f.pad("K"),
-//             PieceType::Pawn => f.pad("p")
-//         }
-//     }
-// }
-
 impl Display for PieceState {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let color_str = match self.color {

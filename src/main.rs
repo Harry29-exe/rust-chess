@@ -8,27 +8,30 @@ mod errors;
 
 fn main() {
     let mut board = Board::new();
+    let mut moves: Vec<BoardPosition> = Vec::new();
 
     println!("{}", board);
-    let moves = get_moves(&board, &BoardPosition{x: 1, y: 1});
-    for pos in moves {
+    get_moves(&board, &BoardPosition{x: 1, y: 1}, &mut moves);
+    for pos in &moves {
         println!("x: {}, y: {}", pos.x, pos.y);
     }
+    moves.clear();
 
     board.move_piece(&BoardPosition{x: 0, y: 6}, &BoardPosition{x: 0, y: 2});
-    // print_board(&board);
     println!("\n{}", board);
-    let moves = get_moves(&board, &BoardPosition{x: 1, y: 1});
-    for pos in moves {
+    get_moves(&board, &BoardPosition{x: 1, y: 1}, &mut moves);
+    for pos in &moves {
         println!("x: {}, y: {}", pos.x, pos.y);
     }
+    moves.clear();
 
 
     board.move_piece(&BoardPosition{x: 0, y: 2}, &BoardPosition{x: 0, y: 1});
     println!("\n{}", board);
-    let moves = get_moves(&board, &BoardPosition{x: 0, y: 0});
-    for pos in moves {
+    get_moves(&board, &BoardPosition{x: 0, y: 0}, &mut moves);
+    for pos in &moves {
         println!("x: {}, y: {}", pos.x, pos.y);
     }
+    moves.clear();
 
 }

@@ -2,15 +2,13 @@ use crate::board::{Board, BOARD_WIDTH, BoardField, BoardPosition};
 use crate::piece::{PieceColor, PieceMoved, PieceState, PieceType};
 use crate::piece::PieceColor::{Black, White};
 
-pub fn get_moves(board: &Board, pos: &BoardPosition) -> Vec<BoardPosition> {
-    let mut moves: Vec<BoardPosition> = Vec::new();
+pub fn get_moves(board: &Board, pos: &BoardPosition, moves: &mut Vec<BoardPosition>){
     let piece = board.value_at(pos);
-    return match piece {
-        BoardField::Empty => vec![],
+    match piece {
+        BoardField::Empty => {},
         BoardField::Piece(state) => {
-            let mut move_service = PossibleMovesService::new(board, pos, &state, &mut moves);
-            get_piece_moves(&mut move_service);
-            moves
+            let mut move_service = PossibleMovesService::new(board, pos, state, moves);
+            move_service.get_piece_moves();
         }
     };
 }
@@ -40,104 +38,106 @@ impl PossibleMovesService<'_> {
     }
 }
 
-#[inline]
-fn get_piece_moves(move_service: &mut PossibleMovesService) {
-    match move_service.piece_state.piece_type {
-        PieceType::Pawn => get_moves_pawn(move_service),
-        PieceType::KNIGHT => get_moves_knight(move_service),
-        PieceType::BISHOP => get_moves_bishop(move_service),
-        PieceType::QUEEN => get_moves_queen(move_service),
-        _ => panic!("not implemented")
-    };
-}
+impl PossibleMovesService<'_> {
+    #[inline]
+    fn get_piece_moves(&mut self) {
+        match self.piece_state.piece_type {
+            PieceType::Pawn => self.get_moves_pawn(),
+            PieceType::KNIGHT => self.get_moves_knight(),
+            PieceType::BISHOP => self.get_moves_bishop(),
+            PieceType::QUEEN => self.get_moves_queen(),
+            _ => panic!("not implemented")
+        };
+    }
 
-#[inline]
-fn get_moves_pawn(move_service: &mut PossibleMovesService<'_>) {
-    let pos_forward = move_service.piece_pos.delta_y(move_service.forward_y);
-    if move_service.board.is_empty(&pos_forward) {
-        move_service.moves.push(pos_forward);
-        let pos_forward2 = move_service.piece_pos.delta_y(move_service.forward_y+move_service.forward_y);
-        if move_service.piece_state.moved == PieceMoved::No && move_service.board.is_empty(&pos_forward2) {
-            move_service.moves.push(pos_forward2);
+    #[inline]
+    fn get_moves_pawn(&mut self) {
+        let pos_forward = self.piece_pos.delta_y(self.forward_y);
+        if self.board.is_empty(&pos_forward) {
+            self.moves.push(pos_forward);
+            let pos_forward2 = self.piece_pos.delta_y(self.forward_y+ self.forward_y);
+            if self.piece_state.moved == PieceMoved::No && self.board.is_empty(&pos_forward2) {
+                self.moves.push(pos_forward2);
+            }
+        }
+
+        if self.piece_pos.x > 0 {
+            let left = self.piece_pos.delta(-1, self.forward_y);
+            if self.board.is_color(&left, &self.opposite_color) {
+                self.moves.push(left)
+            }
+        }
+
+        if self.piece_pos.x < BOARD_WIDTH - 1 {
+            let right = self.piece_pos.delta(1, self.forward_y);
+            if self.board.is_color(&right, &self.opposite_color) {
+                self.moves.push(right)
+            }
         }
     }
 
-
-    if move_service.piece_pos.x > 0 {
-        let left = move_service.piece_pos.delta(-1, move_service.forward_y);
-        if move_service.board.is_color(&left, &move_service.opposite_color) {
-            move_service.moves.push(left)
-        }
+    #[inline]
+    fn get_moves_knight(&mut self) {
+        self.get_moves_horizontal();
+        self.get_moves_vertical();
     }
 
-    if move_service.piece_pos.x < BOARD_WIDTH - 1 {
-        let right = move_service.piece_pos.delta(1, move_service.forward_y);
-        if move_service.board.is_color(&right, &move_service.opposite_color) {
-            move_service.moves.push(right)
-        }
+    #[inline]
+    fn get_moves_bishop(&mut self) {
+        self.get_moves_horizontal();
     }
-}
 
-#[inline]
-fn get_moves_knight(move_service: &mut PossibleMovesService) {
-    get_moves_horizontal(move_service);
-    get_moves_vertical(move_service);
-}
+    #[inline]
+    fn get_moves_queen(&mut self) {
+        self.get_moves_knight();
+        self.get_moves_bishop();
+    }
 
-#[inline]
-fn get_moves_bishop(move_service: &mut PossibleMovesService) {
-    get_moves_horizontal(move_service);
-}
+    #[inline]
+    fn get_moves_vertical(&mut self) {
+        self.get_moves_loop(0, 1);
+        self.get_moves_loop(0, -1);
+    }
 
-#[inline]
-fn get_moves_queen(move_service: &mut PossibleMovesService) {
-    get_moves_knight(move_service);
-    get_moves_bishop(move_service);
-}
+    #[inline]
+    fn get_moves_horizontal(&mut self) {
+        self.get_moves_loop(1, 0);
+        self.get_moves_loop(-1, 0);
+    }
 
-#[inline]
-fn get_moves_vertical(move_service: &mut PossibleMovesService) {
-    get_moves_loop(move_service, 0, 1);
-    get_moves_loop(move_service, 0, -1);
-}
+    #[inline]
+    fn get_moves_diagonal(&mut self) {
+        self.get_moves_loop(-1, -1);
+        self.get_moves_loop(-1, 1);
+        self.get_moves_loop(1, -1);
+        self.get_moves_loop(1, 1);
+    }
 
-#[inline]
-fn get_moves_horizontal(move_service: &mut PossibleMovesService) {
-    get_moves_loop(move_service, 1, 0);
-    get_moves_loop(move_service, -1, 0);
-}
+    #[inline]
+    fn get_moves_loop(&mut self,
+                      delta_x: isize,
+                      delta_y: isize,
+    ) {
+        let mut previous_pos = self.piece_pos.clone();
 
-#[inline]
-fn get_moves_diagonal(move_service: &mut PossibleMovesService) {
-    get_moves_loop(move_service, -1, -1);
-    get_moves_loop(move_service, -1, 1);
-    get_moves_loop(move_service, 1, -1);
-    get_moves_loop(move_service, 1, 1);
-}
+        loop {
+            let new_pos_result = previous_pos.delta_if_valid(delta_x, delta_y);
+            if new_pos_result.is_err() {
+                break;
+            }
 
-#[inline]
-fn get_moves_loop(move_service: &mut PossibleMovesService,
-                  delta_x: isize,
-                  delta_y: isize,
-) {
-    let mut previous_pos = move_service.piece_pos.clone();
+            let new_pos = new_pos_result.unwrap();
+            if self.board.is_empty(&new_pos) {
+                self.moves.push(new_pos.clone());
+                previous_pos = new_pos;
+                continue;
+            }
 
-    loop {
-        let new_pos_result = previous_pos.delta_if_valid(delta_x, delta_y);
-        if new_pos_result.is_err() {
+            if self.board.is_color(&new_pos, &self.opposite_color) {
+                self.moves.push(new_pos);
+            }
             break;
         }
-
-        let new_pos = new_pos_result.unwrap();
-        if move_service.board.is_empty(&new_pos) {
-            move_service.moves.push(new_pos.clone());
-            previous_pos = new_pos;
-            continue;
-        }
-
-        if move_service.board.is_color(&new_pos, &move_service.opposite_color) {
-            move_service.moves.push(new_pos);
-        }
-        break;
     }
+
 }

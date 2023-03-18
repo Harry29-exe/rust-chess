@@ -1,6 +1,5 @@
-use std::env::VarError;
-use std::{array, fmt};
-use std::fmt::{Formatter, Pointer};
+use std::{fmt};
+use std::fmt::{Formatter};
 use crate::errors::ErrorKind;
 use crate::piece::{PieceType, PieceState, PieceMoved, PieceColor};
 use crate::piece::PieceType::{BISHOP, KING, KNIGHT, Pawn, QUEEN, ROOK};
@@ -22,11 +21,6 @@ impl Board {
     pub const BLACK_FORWARD: isize = -1;
 
     #[inline]
-    pub(crate) fn value(&self, x: usize, y: usize) -> &BoardField {
-        return &self.board[y*BOARD_WIDTH + x]
-    }
-
-    #[inline]
     pub(crate) fn value_at(&self, pos: &BoardPosition) -> &BoardField {
         return &self.board[pos.y*BOARD_WIDTH + pos.x]
     }
@@ -42,6 +36,14 @@ impl Board {
     #[inline]
     pub(crate) fn is_empty(&self, pos: &BoardPosition) -> bool {
         return self.value_at(pos) == &BoardField::Empty
+    }
+
+    #[inline]
+    pub(crate) fn is_empty_or_color(&self, pos: &BoardPosition, color: &PieceColor) -> bool {
+        return match self.value_at(pos) {
+            BoardField::Empty => true,
+            BoardField::Piece(state) => state.color == *color
+        }
     }
 
     pub(crate) fn move_piece(&mut self, from: &BoardPosition, to: &BoardPosition) {
@@ -85,9 +87,9 @@ impl fmt::Display for Board {
         let mut is_black = true;
         for i in (0..BOARD_SIZE).rev() {
             if is_black {
-                f.pad("\x1B[48;2;80;80;80m").expect("can not print to console?");
+                f.pad("\x1B[48;2;80;80;88m").expect("can not print to console?");
             } else {
-                f.pad("\x1B[48;2;200;200;200m").expect("can not print to console?");
+                f.pad("\x1B[48;2;106;162;226m").expect("can not print to console?");
             }
             self.board[i].fmt(f).expect("can not print to console?");
             if i % BOARD_WIDTH == 0 {
@@ -140,11 +142,6 @@ impl BoardField {
             moved: PieceMoved::No
         })
     }
-
-    pub fn new_empty() -> BoardField {
-        return BoardField::Empty
-    }
-
 }
 
 #[derive(Clone)]

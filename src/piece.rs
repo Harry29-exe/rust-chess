@@ -1,5 +1,4 @@
 use std::fmt::{Display, Formatter};
-use crate::board::{Board, BoardPosition};
 use crate::piece::PieceColor::{Black, White};
 
 #[derive(Copy, Clone, PartialEq)]
@@ -63,5 +62,3 @@ pub enum PieceMoved {
     LastTurn,
     No,
 }
-
-pub type Moves = Vec<BoardPosition>;

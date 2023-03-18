@@ -1,10 +1,11 @@
-use crate::board::{Board, BOARD_WIDTH, BoardPosition};
+use crate::board::{Board, BoardPosition};
 use crate::moves::get_moves;
 
 mod piece;
 mod board;
 mod moves;
 mod errors;
+mod moves_tests;
 
 fn main() {
     let mut board = Board::new();

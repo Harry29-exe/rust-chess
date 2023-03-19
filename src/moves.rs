@@ -1,13 +1,16 @@
-use crate::board::{Board, BOARD_SIZE, BOARD_WIDTH, BoardField, BoardPosition};
+use crate::board::{Board, BOARD_SIZE, BOARD_WIDTH, Field, Position};
 use crate::errors::ErrorKind;
-use crate::piece::{PieceColor, PieceMoved, PieceState, PieceType};
-use crate::piece::PieceColor::{Black, White};
+use crate::board::piece::PieceMoved;
+use crate::board::piece::PieceState;
+use crate::board::piece::Type;
+use crate::board::piece::Color;
+use crate::board::piece::Color::{Black, White};
 
-pub fn get_moves(board: &Board, pos: &BoardPosition, moves: &mut Vec<BoardPosition>){
+pub fn get_moves(board: &Board, pos: &Position, moves: &mut Vec<Position>){
     let piece = board.value_at(pos);
     match piece {
-        BoardField::Empty => {},
-        BoardField::Piece(state) => {
+        Field::Empty => {},
+        Field::Piece(state) => {
             let mut move_service = PossibleMovesService::new(board, pos, state, moves);
             move_service.get_piece_moves();
         }
@@ -15,16 +18,16 @@ pub fn get_moves(board: &Board, pos: &BoardPosition, moves: &mut Vec<BoardPositi
 }
 
 struct PossibleMovesService<'s> {
-    moves: &'s mut Vec<BoardPosition>,
+    moves: &'s mut Vec<Position>,
     board: &'s Board,
-    piece_pos: &'s BoardPosition,
+    piece_pos: &'s Position,
     piece_state: &'s PieceState,
-    opposite_color: PieceColor,
+    opposite_color: Color,
     forward_y: isize
 }
 
 impl PossibleMovesService<'_> {
-    fn new<'s>(board: &'s Board, piece_pos: &'s BoardPosition, piece_state: &'s PieceState, vec: &'s mut Vec<BoardPosition>) -> PossibleMovesService<'s> {
+    fn new<'s>(board: &'s Board, piece_pos: &'s Position, piece_state: &'s PieceState, vec: &'s mut Vec<Position>) -> PossibleMovesService<'s> {
         return PossibleMovesService{
             moves: vec,
             board,
@@ -43,12 +46,12 @@ impl PossibleMovesService<'_> {
     #[inline]
     fn get_piece_moves(&mut self) {
         match self.piece_state.piece_type {
-            PieceType::Pawn => self.get_moves_pawn(),
-            PieceType::KNIGHT => self.get_moves_knight(),
-            PieceType::BISHOP => self.get_moves_bishop(),
-            PieceType::QUEEN => self.get_moves_queen(),
-            PieceType::ROOK => self.get_moves_rook(),
-            PieceType::KING => self.get_moves_king(),
+            Type::Pawn => self.get_moves_pawn(),
+            Type::KNIGHT => self.get_moves_knight(),
+            Type::BISHOP => self.get_moves_bishop(),
+            Type::QUEEN => self.get_moves_queen(),
+            Type::ROOK => self.get_moves_rook(),
+            Type::KING => self.get_moves_king(),
         };
     }
 
@@ -173,8 +176,8 @@ impl PossibleMovesService<'_> {
                       delta_y: isize,
     ) {
         let mut previous_pos = self.piece_pos.clone();
-        let mut new_pos: BoardPosition;
-        let mut new_pos_result: Result<BoardPosition, ErrorKind>;
+        let mut new_pos: Position;
+        let mut new_pos_result: Result<Position, ErrorKind>;
 
         loop {
             new_pos_result = previous_pos.delta_if_valid(delta_x, delta_y);
@@ -200,14 +203,14 @@ impl PossibleMovesService<'_> {
 
 impl PossibleMovesService<'_> {
     #[inline]
-    fn add_pos_if_empty_or_enemy(&mut self, pos: BoardPosition) {
+    fn add_pos_if_empty_or_enemy(&mut self, pos: Position) {
         if self.board.is_empty_or_color(&pos, &self.opposite_color) {
             self.moves.push(pos);
         }
     }
 
     #[inline]
-    fn try_add_pos_if_empty_or_enemy(&mut self, pos_result: Result<BoardPosition, ErrorKind>) {
+    fn try_add_pos_if_empty_or_enemy(&mut self, pos_result: Result<Position, ErrorKind>) {
         match pos_result {
             Err(..) => {},
             Ok(pos) => self.add_pos_if_empty_or_enemy(pos)

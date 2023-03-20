@@ -6,6 +6,9 @@ use crate::board::piece::Type;
 use crate::board::piece::Color;
 use crate::board::piece::Color::{Black, White};
 
+#[cfg(test)]
+mod tests;
+
 pub fn get_moves(board: &Board, pos: &Position, moves: &mut Vec<Position>){
     let piece = board.value_at(pos);
     match piece {
@@ -47,10 +50,10 @@ impl PossibleMovesService<'_> {
     fn get_piece_moves(&mut self) {
         match self.piece_state.piece_type {
             Type::Pawn => self.get_moves_pawn(),
-            Type::KNIGHT => self.get_moves_knight(),
-            Type::BISHOP => self.get_moves_bishop(),
-            Type::QUEEN => self.get_moves_queen(),
-            Type::ROOK => self.get_moves_rook(),
+            Type::Knight => self.get_moves_knight(),
+            Type::Bishop => self.get_moves_bishop(),
+            Type::Queen => self.get_moves_queen(),
+            Type::Rook => self.get_moves_rook(),
             Type::KING => self.get_moves_king(),
         };
     }
@@ -122,6 +125,12 @@ impl PossibleMovesService<'_> {
 
     #[inline]
     fn get_moves_rook(&mut self) {
+        self.get_moves_horizontal();
+        self.get_moves_vertical();
+    }
+
+    #[inline]
+    fn get_moves_knight(&mut self) {
         let pos = self.piece_pos;
         self.try_add_pos_if_empty_or_enemy(pos.delta_if_valid(-2, 1));
         self.try_add_pos_if_empty_or_enemy(pos.delta_if_valid(-2, -1));
@@ -131,12 +140,6 @@ impl PossibleMovesService<'_> {
         self.try_add_pos_if_empty_or_enemy(pos.delta_if_valid(2, 1));
         self.try_add_pos_if_empty_or_enemy(pos.delta_if_valid(1, 2));
         self.try_add_pos_if_empty_or_enemy(pos.delta_if_valid(-1, 2));
-    }
-
-    #[inline]
-    fn get_moves_knight(&mut self) {
-        self.get_moves_horizontal();
-        self.get_moves_vertical();
     }
 
     #[inline]
@@ -198,7 +201,6 @@ impl PossibleMovesService<'_> {
             break;
         }
     }
-
 }
 
 impl PossibleMovesService<'_> {

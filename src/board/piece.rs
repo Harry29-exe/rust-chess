@@ -14,10 +14,10 @@ impl Display for PieceState {
             Color::Black => "\x1B[38;2;0;0;0m", // Black color
         };
         let piece_str = match self.piece_type {
-            Type::ROOK => "r",
-            Type::KNIGHT => "k",
-            Type::BISHOP => "b",
-            Type::QUEEN => "q",
+            Type::Rook => "r",
+            Type::Knight => "k",
+            Type::Bishop => "b",
+            Type::Queen => "q",
             Type::KING => "K",
             Type::Pawn => "p"
         };
@@ -31,14 +31,14 @@ impl PieceState {
         let piece_str = match (self.piece_type, self.color) {
             (Type::KING, Color::White) => "♔",
             (Type::KING, Color::Black) => "♚",
-            (Type::QUEEN, Color::White) => "♕",
-            (Type::QUEEN, Color::Black) => "♛",
-            (Type::ROOK, Color::White) => "♖",
-            (Type::ROOK, Color::Black) => "♜",
-            (Type::BISHOP, Color::White) => "♗",
-            (Type::BISHOP, Color::Black) => "♝",
-            (Type::KNIGHT, Color::White) => "♘",
-            (Type::KNIGHT, Color::Black) => "♞",
+            (Type::Queen, Color::White) => "♕",
+            (Type::Queen, Color::Black) => "♛",
+            (Type::Rook, Color::White) => "♖",
+            (Type::Rook, Color::Black) => "♜",
+            (Type::Bishop, Color::White) => "♗",
+            (Type::Bishop, Color::Black) => "♝",
+            (Type::Knight, Color::White) => "♘",
+            (Type::Knight, Color::Black) => "♞",
             (Type::Pawn, Color::White) => "♙",
             (Type::Pawn, Color::Black) => "♟︎"
         };
@@ -50,10 +50,10 @@ impl PieceState {
 #[derive(Copy, Clone, PartialEq)]
 #[derive(Debug)]
 pub enum Type {
-    ROOK,
-    KNIGHT,
-    BISHOP,
-    QUEEN,
+    Rook,
+    Knight,
+    Bishop,
+    Queen,
     KING,
     Pawn,
 }

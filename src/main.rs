@@ -4,8 +4,6 @@ use crate::moves::get_moves;
 mod board;
 mod moves;
 mod errors;
-#[cfg(test)]
-mod moves_tests;
 
 fn main() {
     let mut board = Board::new();
@@ -34,5 +32,4 @@ fn main() {
         println!("x: {}, y: {}", pos.x, pos.y);
     }
     moves.clear();
-
 }

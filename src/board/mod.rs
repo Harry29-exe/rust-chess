@@ -2,7 +2,7 @@ use std::{fmt};
 use std::fmt::{Formatter};
 use crate::errors::ErrorKind;
 use crate::board::piece::{Type, PieceState, PieceMoved, Color};
-use crate::board::piece::Type::{BISHOP, KING, KNIGHT, Pawn, QUEEN, ROOK};
+use crate::board::piece::Type::{Bishop, KING, Knight, Pawn, Queen, Rook};
 
 pub mod piece;
 pub mod board_display;
@@ -59,13 +59,13 @@ impl Board {
     pub fn new() -> Board {
         let mut board = [Field::Empty; BOARD_SIZE];
         Board::init_white_row(&mut board, Board::WHITE_START_ROW,
-                              [KNIGHT, ROOK, BISHOP, KING, QUEEN, BISHOP, ROOK, KNIGHT]);
+                              [Knight, Rook, Bishop, KING, Queen, Bishop, Rook, Knight]);
         Board::init_white_row(&mut board, Board::WHITE_PAWN_ROW,
                               [Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn,]);
         Board::init_black_row(&mut board, Board::BLACK_PAWN_ROW,
                               [Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn,]);
         Board::init_black_row(&mut board, Board::BLACK_START_ROW,
-                              [KNIGHT, ROOK, BISHOP, QUEEN, KING, BISHOP, ROOK, KNIGHT]);
+                              [Knight, Rook, Bishop, Queen, KING, Bishop, Rook, Knight]);
 
         return Board{ board }
     }
